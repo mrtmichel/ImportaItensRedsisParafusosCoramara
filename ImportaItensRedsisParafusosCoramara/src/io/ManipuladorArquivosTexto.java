@@ -26,10 +26,10 @@ public class ManipuladorArquivosTexto {
             try {
                 BufferedReader lerArq = new BufferedReader(arq);
                 String[] linha = StringUtils.splitPreserveAllTokens(lerArq.readLine(), ";");
-                lstLinhasArquivo.add(linha);
+                lstLinhasArquivo.add(ajustaLinha(linha));
                 while (linha != null) {
                     linha = StringUtils.splitPreserveAllTokens(lerArq.readLine(), ";");
-                    lstLinhasArquivo.add(linha);
+                    lstLinhasArquivo.add(ajustaLinha(linha));
                 }
             } catch (IOException e) {
                 System.err.printf("Erro na abertura do arquivo: %s.\n",
@@ -41,4 +41,36 @@ public class ManipuladorArquivosTexto {
         return lstLinhasArquivo;
     }
 
+    private String[] ajustaLinha(String[] linha) {
+        if (linha != null) {
+            for (int i = 0; i < linha.length; i++) {
+                String campo = linha[i];
+                switch (i) {
+                    case 1:
+                        try {
+                            campo = campo.toUpperCase().trim();
+                            campo = StringUtils.replace(campo, "  ", " ");
+                            linha[i] = campo;
+                        } catch (Exception e) {
+                            linha[i] = "";
+                        }
+                        break;
+                    case 2:
+                    case 3:
+                        try {
+                            campo = StringUtils.replace(campo, ",", ".");
+                            linha[i] = campo;
+
+                        } catch (Exception e) {
+                            linha[i] = "";
+                        }
+                        break;
+                }
+            }
+
+            return linha;
+        } else {
+            return null;
+        }
+    }
 }

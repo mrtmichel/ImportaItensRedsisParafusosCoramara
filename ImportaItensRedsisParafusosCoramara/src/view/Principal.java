@@ -8,6 +8,7 @@ package view;
 import dao.GrpJpaController;
 import dao.InventJpaController;
 import dao.ProdJpaController;
+import entidades.Prod;
 import io.ManipuladorArquivosTexto;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,14 +27,17 @@ public class Principal {
     //conexao banco
     public static EntityManagerFactory emfDbcomAntes;
     public static EntityManagerFactory emfDbcomDepois;
-    private static final String CAMINHO_BANCO_ANTES = "D:\\Bancos_Teste\\Parafusos_Coramara\\DBCOM_ANTES.FDB", USUARIO_ANTES = "SYSDBA", SENHA_ANTES = "masterkey";
-    private static final String CAMINHO_BANCO_DEPOIS = "D:\\Bancos_Teste\\Parafusos_Coramara\\DBCOM_ANTES.rar", USUARIO_DEPOIS = "SYSDBA", SENHA_DEPOIS = "masterkey";
+    private static final String CAMINHO_BANCO_ANTES = "D:\\Bancos_Teste\\Parafusos_Coramara\\DBCOM_ANTES.RED", USUARIO_ANTES = "SYSDBA", SENHA_ANTES = "masterkey";
+    private static final String CAMINHO_BANCO_DEPOIS = "D:\\Bancos_Teste\\Parafusos_Coramara\\DBCOM_DEPOIS.RED", USUARIO_DEPOIS = "SYSDBA", SENHA_DEPOIS = "masterkey";
     private static GrpJpaController grpJpaControllerAntes;
     private static ProdJpaController prodJpaControllerAntes;
     private static InventJpaController inventJpaControllerAntes;
     private static GrpJpaController grpJpaControllerDepois;
     private static ProdJpaController prodJpaControllerDepois;
     private static InventJpaController inventJpaControllerDepois;
+
+    //Prod padrão
+    private static Prod prodPadrao;
 
     //arquivo texto
     private static String caminhoArquivoTexto = "D:\\Bancos_Teste\\Parafusos_Coramara\\PRODUTO-PAGANI.csv";
@@ -64,6 +68,8 @@ public class Principal {
             prodJpaControllerDepois = new ProdJpaController(emfDbcomDepois);
             inventJpaControllerDepois = new InventJpaController(emfDbcomDepois);
 
+            prodPadrao = prodJpaControllerAntes.findProd(12454);
+
             prodJpaControllerDepois.zeraEstoque();
 
             //leitura do arquivo texto
@@ -72,7 +78,16 @@ public class Principal {
             if (linhasArquvoTexto.size() > 0) {
                 for (int i = 0; i < linhasArquvoTexto.size(); i++) {
                     String[] linha = linhasArquvoTexto.get(i);
-
+                    if (!linha[0].equals("")) {
+                        prodJpaControllerDepois.createNewProd(prodPadrao, linha);
+                    } else {
+                        Prod prod = prodJpaControllerAntes.findProdByNome(linha);
+                        if (prod != null) {
+                            prodJpaControllerDepois.updateProduto(prod, linha);
+                        } else {
+                            prodJpaControllerDepois.createNewProd(prodPadrao, linha);
+                        }
+                    }
                 }
             }
         } catch (IOException e) {

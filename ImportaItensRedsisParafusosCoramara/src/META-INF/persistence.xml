@@ -5,13 +5,14 @@
     <class>entidades.Grp</class>
     <class>entidades.Invent</class>
     <class>entidades.Prod</class>
-    <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
+    <shared-cache-mode>NONE</shared-cache-mode>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:firebirdsql://localhost:3050/D:/Bancos_Teste/Parafusos_Coramara/DBCOM_DEPOIS.RED"/>
       <property name="javax.persistence.jdbc.user" value="SYSDBA"/>
       <property name="javax.persistence.jdbc.driver" value="org.firebirdsql.jdbc.FBDriver"/>
       <property name="javax.persistence.jdbc.password" value="masterkey"/>
       <property name="eclipselink.logging.level" value="FINE"/>
+      <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
     </properties>
   </persistence-unit>
 </persistence>

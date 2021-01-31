@@ -10,11 +10,15 @@ import dao.exceptions.PreexistingEntityException;
 import entidades.Grp;
 import entidades.Prod;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
@@ -175,11 +179,82 @@ public class ProdJpaController implements Serializable {
         EntityManager em = getEntityManager();
         try {
             em.getTransaction().begin();
-            em.createNativeQuery("UPDATE Prod SET prod.estqunsdProd = 0").executeUpdate();
+            em.createNativeQuery("UPDATE Prod SET prod.estqunsd_prod = 0, prod.sit_prod = -1, prod.del_prod = 'S'").executeUpdate();
             em.getTransaction().commit();
         } finally {
             em.close();
         }
     }
 
+    public Prod findProdByNome(String[] linha) {
+        EntityManager em = getEntityManager();
+        try {
+            TypedQuery query = em.createQuery("SELECT p FROM Prod p WHERE p.nomProd = ?1", Prod.class);
+            query.setParameter(1, linha[1]);
+            List<Prod> prods = new ArrayList<>();
+            prods = query.getResultList();
+            if (prods.size() > 0) {
+                return prods.get(0);
+            }
+        } finally {
+            em.close();
+        }
+        return null;
+    }
+
+    public void createNewProd(Prod prod, String[] linha) {
+        prod.setCodEstq(getCodEstq());
+        prod.setCodbarProd(String.valueOf(getCodbarProd()));
+        prod.setDelProd("N");
+        prod.setSitProd((short) 10);
+        prod.setEstqunsdProd(Double.parseDouble(linha[2]));
+        prod.setCusunmedProd(Double.parseDouble(linha[3]));
+        prod.setCustofabProd(Double.parseDouble(linha[3]));
+        prod.setCustoljProd(Double.parseDouble(linha[3]));
+        prod.setTipiProd(linha[4]);
+        prod.setCsosnProd(Short.valueOf(linha[6]));
+        prod.setCestProd(linha[7]);
+        try {
+            create(prod);
+        } catch (Exception ex) {
+            Logger.getLogger(ProdJpaController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void updateProduto(Prod prod, String[] linha) {
+        prod.setNomProd(linha[1]);
+        prod.setDelProd("N");
+        prod.setSitProd((short) 10);
+        prod.setEstqunsdProd(Double.parseDouble(linha[2]));
+        prod.setCusunmedProd(Double.parseDouble(linha[3]));
+        prod.setCustofabProd(Double.parseDouble(linha[3]));
+        prod.setCustoljProd(Double.parseDouble(linha[3]));
+        try {
+            edit(prod);
+        } catch (Exception ex) {
+            Logger.getLogger(ProdJpaController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public int getCodEstq() {
+        EntityManager em = getEntityManager();
+        try {
+            Query query = em.createNativeQuery("SELECT GEN_ID(GEN_COD_ESTQ, 1) FROM RDB$DATABASE");
+            int codEstq = Integer.parseInt(String.valueOf(query.getSingleResult()));
+            return codEstq;
+        } finally {
+            em.close();
+        }
+    }
+
+    public String getCodbarProd() {
+        EntityManager em = getEntityManager();
+        try {
+            Query query = em.createNativeQuery("SELECT GEN_ID(GEN_CODBAR_1, 1) FROM RDB$DATABASE");
+            String codbarProd = String.valueOf(query.getSingleResult());
+            return codbarProd;
+        } finally {
+            em.close();
+        }
+    }
 }
