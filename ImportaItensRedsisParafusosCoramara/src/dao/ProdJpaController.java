@@ -21,6 +21,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -205,6 +206,7 @@ public class ProdJpaController implements Serializable {
     public void createNewProd(Prod prod, String[] linha) {
         prod.setCodEstq(getCodEstq());
         prod.setCodbarProd(String.valueOf(getCodbarProd()));
+        prod.setNomProd(linha[1]);
         prod.setDelProd("N");
         prod.setSitProd((short) 10);
         prod.setEstqunsdProd(Double.parseDouble(linha[2]));
@@ -212,7 +214,11 @@ public class ProdJpaController implements Serializable {
         prod.setCustofabProd(Double.parseDouble(linha[3]));
         prod.setCustoljProd(Double.parseDouble(linha[3]));
         prod.setTipiProd(linha[4]);
-        prod.setCsosnProd(Short.valueOf(linha[6]));
+        try {
+            prod.setCsosnProd(Short.valueOf(linha[6]));
+        } catch (Exception e) {
+            prod.setCsosnProd((short) 102);
+        }
         prod.setCestProd(linha[7]);
         try {
             create(prod);
@@ -257,4 +263,70 @@ public class ProdJpaController implements Serializable {
             em.close();
         }
     }
+
+    public void createNewProdBySilimar(Prod prod, String[] linha) {
+        prod.setCodEstq(getCodEstq());
+        prod.setCodbarProd(String.valueOf(getCodbarProd()));
+        prod.setNomProd(linha[1]);
+        prod.setDelProd("N");
+        prod.setSitProd((short) 10);
+        prod.setEstqunsdProd(Double.parseDouble(linha[2]));
+        prod.setCusunmedProd(Double.parseDouble(linha[3]));
+        prod.setCustofabProd(Double.parseDouble(linha[3]));
+        prod.setCustoljProd(Double.parseDouble(linha[3]));
+        try {
+            create(prod);
+        } catch (Exception ex) {
+            Logger.getLogger(ProdJpaController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public Prod findProdByNomeSimiliar(String[] linha) {
+        if (linha[1].startsWith("MANG.AJUSTAVEL")) {
+            System.out.println("");
+        }
+
+        String nome = StringUtils.replace(linha[1], "  ", " ");
+        nome = StringUtils.replace(nome, ".", " ");
+        String[] aux = StringUtils.splitPreserveAllTokens(nome, " ");
+        StringBuilder sb = new StringBuilder();
+        if (aux.length >= 3) {
+            sb.append("%");
+            for (int i = 0; i < 3; i++) {
+                double tam = aux[i].length();
+                int metade = (int) (tam / 2 + 1);
+                sb.append(StringUtils.substring(aux[i], 0, metade)).append("%");
+            }
+        } else {
+            sb.append(aux[0]).append("%");
+        }
+        nome = sb.toString();
+        EntityManager em = getEntityManager();
+        try {
+            TypedQuery query = em.createQuery("SELECT p FROM Prod p WHERE p.nomProd like ?1", Prod.class);
+            query.setParameter(1, nome);
+            List<Prod> prods = new ArrayList<>();
+            prods = query.getResultList();
+            if (prods.size() > 0) {
+                return prods.get(0);
+            } else {
+                nome = StringUtils.replace(linha[1], "  ", " ");
+                nome = StringUtils.replace(nome, ".", " ");
+                aux = StringUtils.splitPreserveAllTokens(nome, " ");
+                sb = new StringBuilder();
+                sb.append(aux[0]).append("%");
+                query = em.createQuery("SELECT p FROM Prod p WHERE p.nomProd like ?1", Prod.class);
+                query.setParameter(1, sb.toString());
+                prods = new ArrayList<>();
+                prods = query.getResultList();
+                if (prods.size() > 0) {
+                    return prods.get(0);
+                }
+            }
+        } finally {
+            em.close();
+        }
+        return null;
+    }
+
 }

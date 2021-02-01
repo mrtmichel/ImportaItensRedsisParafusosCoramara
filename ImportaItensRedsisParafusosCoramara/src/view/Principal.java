@@ -76,8 +76,11 @@ public class Principal {
             linhasArquvoTexto = new ManipuladorArquivosTexto().lerArquivoTxtToList(caminhoArquivoTexto);
 
             if (linhasArquvoTexto.size() > 0) {
-                for (int i = 0; i < linhasArquvoTexto.size(); i++) {
+                for (int i = 0; i < linhasArquvoTexto.size() - 1; i++) {
                     String[] linha = linhasArquvoTexto.get(i);
+                    if (linha[1].equals("SOQUETE ESTRIADO 1/2\" SATA 9/16")) {
+                        System.out.println("");
+                    }
                     if (!linha[0].equals("")) {
                         prodJpaControllerDepois.createNewProd(prodPadrao, linha);
                     } else {
@@ -85,11 +88,18 @@ public class Principal {
                         if (prod != null) {
                             prodJpaControllerDepois.updateProduto(prod, linha);
                         } else {
-                            prodJpaControllerDepois.createNewProd(prodPadrao, linha);
+                            Prod prodSimilar = prodJpaControllerAntes.findProdByNomeSimiliar(linha);
+                            if (prodSimilar != null) {
+                                prodJpaControllerDepois.createNewProdBySilimar(prodSimilar, linha);
+                            } else {
+                                prodJpaControllerDepois.createNewProdBySilimar(prodPadrao, linha);
+                            }
                         }
                     }
                 }
             }
+
+            //inventJpaControllerDepois.criarInventario(prodJpaControllerDepois.findProdEntities());
         } catch (IOException e) {
         } finally {
             emfDbcomAntes.close();

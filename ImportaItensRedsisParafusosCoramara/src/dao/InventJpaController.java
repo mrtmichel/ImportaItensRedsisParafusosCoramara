@@ -9,14 +9,16 @@ import dao.exceptions.NonexistentEntityException;
 import dao.exceptions.PreexistingEntityException;
 import entidades.Invent;
 import entidades.InventPK;
+import entidades.Prod;
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import servicos.DateServices;
 
 /**
  *
@@ -140,6 +142,39 @@ public class InventJpaController implements Serializable {
             cq.select(em.getCriteriaBuilder().count(rt));
             Query q = em.createQuery(cq);
             return ((Long) q.getSingleResult()).intValue();
+        } finally {
+            em.close();
+        }
+    }
+
+    public void criarInventario(List<Prod> prods) {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.createNativeQuery("DELETE FROM INVENT WHERE INVENT.DTINV_PROD = ?1").setParameter(1, DateServices.getToday()).executeUpdate();
+            em.getTransaction().commit();
+
+            for (Prod prod : prods) {
+                if (prod.getEstqunsdProd() > 0 && prod.getSitProd() > 0) {
+                    Invent invent = new Invent();
+                    invent.setDtfinInv(DateServices.getToday());
+                    invent.getInventPK().setCodEstq(prod.getCodEstq());
+                    invent.setCodEstab(prod.getCodEstab());
+                    invent.setCodbarProd(prod.getCodbarProd());
+                    invent.setNomProd(prod.getNomProd());
+                    invent.setCodMa(Integer.parseInt(String.valueOf(prod.getCodMa())));
+                    invent.setUnsdProd(prod.getUnsdProd());
+                    invent.getInventPK().setCodposseProd(prod.getCodposseProd());
+                    invent.setCodGrp(prod.getCodGrp().getCodGrp());
+                    invent.getInventPK().setCodtercPess(prod.getCodtercPess());
+                    invent.setEstqunsdProd(prod.getEstqunsdProd());
+                    invent.setCusunmedProd(prod.getCusunmedProd());
+                    invent.setAliqicmsProd(prod.getAliqicmsProd());
+                    invent.setNatEstq(prod.getNatEstq());
+                    invent.setPrintinvProd("S");
+
+                }
+            }
         } finally {
             em.close();
         }

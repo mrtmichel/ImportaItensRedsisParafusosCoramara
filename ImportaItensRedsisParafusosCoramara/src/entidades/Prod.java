@@ -600,6 +600,16 @@ public class Prod implements Serializable {
     @ManyToOne
     private Grp codGrp;
 
+    private transient Double dist;
+
+    public Double getDist() {
+        return dist;
+    }
+
+    public void setDist(Double dist) {
+        this.dist = dist;
+    }
+
     public Prod() {
     }
 
